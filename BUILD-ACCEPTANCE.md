@@ -32,7 +32,9 @@ BUILD_ACCEPTANCE=YES
 
 ## Private-data scan
 
-Checked source for private identifiers/patterns (serials, IPs, usernames, private paths): none found in repo files. `public/fixtures.js` and all public fixtures are SYNTHETIC.
+Final tracked-source scan after public sanitation repair checked for serials,
+IPs, usernames, and absolute private workspace paths: none found. Public
+fixtures remain synthetic.
 
 ## Pre-publication bounded repair (R1/R2) — applied 2026-09-03
 

@@ -4,12 +4,14 @@
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, copyFileSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const HERE = dirname(fileURLToPath(import.meta.url));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const LIVE_URL = 'https://nandoca95.github.io/machine-passport-webmcp/';
 const PORT = 9223;
-const SRC_PROFILE = '/Users/hernandocalderon/tricalguar/machine-passport-webmcp/.chrome-test-profile';
+const SRC_PROFILE = join(HERE, '..', '.chrome-test-profile');
 const PROFILE = mkdtempSync(join(tmpdir(), 'mp-live-webmcp-'));
 cpSync(SRC_PROFILE, PROFILE, { recursive: true }); // preserves flag-seeded Local State
 
