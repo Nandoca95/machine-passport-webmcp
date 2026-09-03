@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Machine Passport — Machine Readiness via WebMCP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Machine Passport</h1>
+      <p class="tagline">Read-only evidence → normalized passport → deterministic role readiness → staged proposal.<br />
+      <strong>WebMCP tools and the human page share the exact same app state.</strong></p>
+    </div>
+    <div class="badge badge-none">MACHINE MUTATION = NONE</div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Machines <span class="dim">(synthetic fixtures; imports are clearly labeled)</span></h2>
+      <div id="machine-cards" class="cards"></div>
+    </section>
+
+    <section class="card">
+      <h2>Selected passport / evidence</h2>
+      <div id="detail"></div>
+    </section>
+
+    <section class="card">
+      <h2>Role readiness <span class="dim">— deterministic assessment engine (no LLM scores)</span></h2>
+      <div id="role-tabs" class="tabs"></div>
+      <div id="readiness"></div>
+    </section>
+
+    <section class="card">
+      <h2>Compare <span class="dim">— evidence-backed tradeoff for the selected role</span></h2>
+      <div id="compare"></div>
+    </section>
+
+    <section class="card">
+      <h2>Stage &amp; review proposals <span class="dim">— app state only, never machine state</span></h2>
+      <div id="proposals"></div>
+      <p class="muted small">Agents stage proposals via the <code>stage_change_proposal</code> WebMCP tool
+        (execution_state = NOT_EXECUTED). Humans Approve for Review / Reject here — that changes review_state only.</p>
+    </section>
+
+    <section class="card">
+      <h2>Import Machine Passport JSON <span class="dim">— untrusted input, strictly validated, rendered as plain text</span></h2>
+      <textarea id="import-text" rows="6" placeholder='Paste a Machine Passport JSON (schema_version "0.1.0")…'></textarea>
+      <div class="row">
+        <button id="import-btn" class="btn">Import</button>
+        <button id="reset-btn" class="btn btn-ghost">Reset demo</button>
+      </div>
+      <p id="import-status" class="muted small"></p>
+    </section>
+
+    <section class="card">
+      <h2>Agent activity <span class="dim">— mutations from stage_change_proposal &amp; human review (read-only tools inspect, never mutate)</span></h2>
+      <div id="activity"></div>
+      <p id="tool-list" class="muted small"></p>
+    </section>
+  </main>
+
+  <footer class="boundary">
+    <strong>MACHINE MUTATION = NONE.</strong> No SSH, no PowerShell, no device access. This app never executes a machine action.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
