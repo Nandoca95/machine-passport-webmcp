@@ -42,7 +42,14 @@ await send('Runtime.enable');
 const expr = `(async () => {
   const out = { url: location.href, hasModelContext: !!document.modelContext };
   if (!document.modelContext) return out;
-  const tools = await document.modelContext.getTools();
+  // Wait until app.js finished registering all 5 tools (avoid race with module load).
+  let tools = [];
+  for (let i = 0; i < 20; i++) {
+    tools = await document.modelContext.getTools();
+    if (tools.length >= 5) break;
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  out.waitedTools = tools.length >= 5;
   out.toolCount = tools.length;
   out.toolNames = tools.map((t) => t.name).sort();
   const byName = (n) => tools.find((t) => t.name === n);
@@ -59,7 +66,6 @@ const expr = `(async () => {
   out.stageNotExecuted = staged.execution_state === 'NOT_EXECUTED' && staged.review_state === 'STAGED';
   out.proposalVisibleInUI = document.querySelector('#proposals').textContent.includes(staged.proposal_id);
   out.sharedUIState = out.stageNotExecuted && out.proposalVisibleInUI;
-  try { byName('get_machine_passport'); } catch {}
   return out;
 })()`;
 

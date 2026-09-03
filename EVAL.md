@@ -1,7 +1,13 @@
 # Machine Passport — eval set (small agent/eval matrix)
 
 No eval platform is built. These four prompts cover the required behaviors; each
-can be verified by a human with the Model Context Tool Inspector / a WebMCP agent
+can be verified by a human with the Model Context Tool Inspector or a
+WebMCP-capable assistant (ChatGPT in-app browser recommended for the live URL).
+
+> Live-site note: deterministic WebMCP verification runs on localhost
+> (`npm run check`). On remote https origins, current Chrome's testing flag can
+> fail to expose page-registered tools via `getTools()` (documented in README);
+> use the ChatGPT in-app browser for live judge-path testing.
 against the live app, or by driving the five tools directly
 (`document.modelContext.executeTool(tool, '{"...":"..."}')`).
 
