@@ -1,0 +1,16 @@
+{
+  "name": "machine-passport-webmcp",
+  "version": "0.1.0",
+  "description": "Machine Passport / Machine Readiness — OpenAI WebMCP Challenge v0.1 (read-only evidence -> normalized passport -> deterministic role readiness -> staged proposal; machine mutation = NONE)",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test": "node tests/run-tests.mjs",
+    "check": "node scripts/webmcp-check.mjs",
+    "g0-test": "node scripts/g0-test.mjs",
+    "smoke-plain": "node scripts/smoke-plain.mjs",
+    "prep-chrome": "node scripts/prep-chrome-profile.mjs"
+  }
+}
