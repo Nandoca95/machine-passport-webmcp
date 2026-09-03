@@ -14,6 +14,22 @@ export const EXECUTION_STATE = 'NOT_EXECUTED';
 
 let proposalSeq = 0;
 
+// Deterministic retry fingerprint (normalized) over the meaningful request.
+// Purpose: at-least-once tool invocation must not create duplicate proposals.
+const FP_FIELDS = ['machine_id', 'role_id', 'finding_id', 'proposal_kind', 'summary', 'acceptance_criterion', 'verification', 'rollback_note'];
+const normFp = (v) => String(v === undefined || v === null ? '' : v).trim().toLowerCase();
+export function proposalFingerprint(input) {
+  return FP_FIELDS.map((k) => normFp(input[k])).join('\u0001');
+}
+function activeDups(state, input) {
+  const fp = proposalFingerprint(input);
+  return state.proposals.find((p) => {
+    if (p.execution_state !== EXECUTION_STATE) return false;
+    if (p.review_state !== 'STAGED' && p.review_state !== 'APPROVED_FOR_REVIEW') return false;
+    return proposalFingerprint(p) === fp;
+  });
+}
+
 function clone(v) {
   return structuredClone(v);
 }
@@ -56,6 +72,12 @@ export function createProposal(state, input) {
     if (typeof input[k] !== 'string' || input[k].length === 0 || input[k].length > 500) {
       return err(`PROPOSAL_REJECTED: ${k} required (1..500 chars)`);
     }
+  }
+  // Retry-safe: identical active proposal (STAGED/APPROVED_FOR_REVIEW, NOT_EXECUTED) is
+  // returned without mutating state or incrementing the sequence. REJECTED allows retry.
+  const existing = activeDups(state, input);
+  if (existing) {
+    return { state, error: null, proposal: existing, duplicate: true };
   }
   proposalSeq += 1;
   const proposal = {

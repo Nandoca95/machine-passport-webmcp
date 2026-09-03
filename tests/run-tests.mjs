@@ -28,7 +28,7 @@ for (const p of DEFAULT_FIXTURES) {
   } catch (e) { t(`validate ${p.machine.id}`, false, String(e)); }
 }
 t('schema_version constant', SCHEMA_VERSION === '0.1.0');
-t('assessment_policy_version constant', ASSESSMENT_POLICY_VERSION === '0.1.0');
+t('assessment_policy_version constant', ASSESSMENT_POLICY_VERSION === '0.1.1');
 
 // Malformed import rejection ---------------------------------------------------
 console.log('\n[2] malformed import rejection');
@@ -106,6 +106,15 @@ t('Beacon UA ready_with_limitations (safest)', uaB.OVERALL === 'READY_WITH_LIMIT
 t('Relay UA not_ready (no compute)', uaR.OVERALL === 'NOT_READY');
 t('role catalog exact', JSON.stringify(ROLES) === JSON.stringify(['GENERAL_WORKSTATION', 'LOCAL_INFERENCE_NODE', 'UNATTENDED_AI_WORKLOAD']));
 
+// Blocker semantics (R2: only WARNING/BLOCKER findings touching NOT_READY/UNKNOWN dims) --
+console.log('\n[5b] blocker semantics');
+t('Beacon UA has no hard blockers (limitation only)', uaB.blockers.length === 0);
+t('Beacon UA bcn-inference-limited not a blocker', !uaB.blockers.includes('bcn-inference-limited'));
+t('Atlas UA atl-qual-gap remains blocker (QUALIFICATION NOT_READY)', uaA.blockers.includes('atl-qual-gap'));
+t('Atlas UA atl-approval-unknown remains blocker (SECURITY UNKNOWN)', uaA.blockers.includes('atl-approval-unknown'));
+t('Relay UA rly-no-gpu remains blocker (compute NOT_READY)', uaR.blockers.includes('rly-no-gpu'));
+t('blockers never contain INFO findings', DEFAULT_FIXTURES.flatMap((p) => assessRole(p, 'UNATTENDED_AI_WORKLOAD').blockers).every((b) => { const fn = DEFAULT_FIXTURES.flatMap((p) => p.findings).find((f) => f.id === b); return fn && fn.severity !== 'INFO'; }));
+
 // Aggregation ------------------------------------------------------------------
 console.log('\n[6] aggregation');
 t('aggregate: NOT_READY wins', aggregateStatus(['READY', 'NOT_READY', 'UNKNOWN']) === 'NOT_READY');
@@ -170,6 +179,38 @@ t('unknown finding rejected', createProposal(s, {
   machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD', finding_id: 'nope',
   proposal_kind: 'PLAN_QUALIFICATION_TEST', summary: 'x', acceptance_criterion: 'y', verification: 'z', rollback_note: 'w',
 }).error !== null);
+
+// Retry-safe stage (R1: at-least-once invocation must not duplicate proposals) ------
+console.log('\n[9b] retry-safe stage');
+const RETRY_INPUT = {
+  machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD', finding_id: 'atl-qual-gap',
+  proposal_kind: 'PLAN_QUALIFICATION_TEST',
+  summary: 'Plan and run a supervised qualification test.',
+  acceptance_criterion: 'Recovery drill passes twice in a row.',
+  verification: 'Read the qualification record.',
+  rollback_note: 'No machine change; keep Atlas out of unattended duty until PASS.',
+};
+let sa = defaultAppState();
+const ra1 = createProposal(sa, RETRY_INPUT);
+const pidA = ra1.proposal.proposal_id;
+t('A first identical call -> one proposal created', ra1.error === null && !ra1.duplicate && ra1.state.proposals.length === 1 && typeof pidA === 'string' && pidA.startsWith('P-'));
+const afterFirst = JSON.stringify(ra1.state);
+const ra2 = createProposal(ra1.state, RETRY_INPUT);
+t('A second identical call -> same proposal, proposals still=1', ra2.proposal.proposal_id === pidA && ra2.state.proposals.length === 1);
+t('A duplicate retry does not mutate state', JSON.stringify(ra2.state) === afterFirst);
+t('A duplicate retry flagged', ra2.duplicate === true);
+const ra2w = createProposal(ra1.state, { ...RETRY_INPUT, summary: '  Plan and run a supervised qualification test.  ', acceptance_criterion: 'RECOVERY DRILL PASSES TWICE IN A ROW.' });
+t('A normalized-fingerprint retry (whitespace/case) returns existing', ra2w.proposal.proposal_id === pidA && ra2w.state.proposals.length === 1);
+const bAppr = setProposalReview(ra1.state, pidA, 'APPROVE_FOR_REVIEW');
+const bRetry = createProposal(bAppr.state, RETRY_INPUT);
+t('B approved -> identical retry returns existing, proposals still=1', bRetry.proposal.proposal_id === pidA && bRetry.state.proposals.length === 1);
+t('B approved retry keeps execution NOT_EXECUTED', bRetry.proposal.execution_state === 'NOT_EXECUTED' && bRetry.proposal.review_state === 'APPROVED_FOR_REVIEW');
+const cRej = setProposalReview(ra1.state, pidA, 'REJECT');
+const cNew = createProposal(cRej.state, RETRY_INPUT);
+t('C rejected -> identical request may create new proposal', cNew.proposal.proposal_id !== pidA && cNew.state.proposals.length === 2 && !cNew.duplicate);
+const dNew = createProposal(cNew.state, { ...RETRY_INPUT, finding_id: 'atl-approval-unknown' });
+t('D different finding -> distinct proposal', dNew.proposal.proposal_id !== pidA && dNew.proposal.proposal_id !== cNew.proposal.proposal_id && dNew.state.proposals.length === 3 && !dNew.duplicate);
+t('retry no machine mutation', JSON.stringify(dNew.state.machines) === JSON.stringify(defaultAppState().machines));
 
 // Reset --------------------------------------------------------------------------
 console.log('\n[10] reset');

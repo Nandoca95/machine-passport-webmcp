@@ -3,7 +3,7 @@
 // SEPARATES EVIDENCE (passport facts/findings) FROM ADJUDICATION (readiness engine).
 
 export const SCHEMA_VERSION = '0.1.0';
-export const ASSESSMENT_POLICY_VERSION = '0.1.0';
+export const ASSESSMENT_POLICY_VERSION = '0.1.1';
 
 export const SOURCE_KINDS = ['SYNTHETIC', 'REAL_REDACTED', 'IMPORTED'];
 export const PROVENANCE = ['OBSERVED_CURRENT', 'HUMAN_REPORTED', 'DOCUMENT_SUPPORTED', 'DERIVED', 'UNKNOWN'];
@@ -302,12 +302,14 @@ export function assessRole(passport, roleId) {
     };
     allStatuses.push(dimStatus);
   }
-  // Findings referencing evidence of non-green dimensions surface as blockers.
+  // Findings surface as blockers only when WARNING/BLOCKER AND at least one of
+  // their evidence refs hits a dimension whose current status is NOT_READY or
+  // UNKNOWN. Limitations on READY/READY_WITH_LIMITATIONS dimensions are NOT blockers.
   const blockers = [];
   const dimStatusMap = dimensionDetail;
   for (const finding of passport.findings) {
     const involved = finding.evidence_refs.some((ref) =>
-      Object.values(dimStatusMap).some((d) => d.evidence_refs.includes(ref) && d.status !== 'READY'));
+      Object.values(dimStatusMap).some((d) => d.evidence_refs.includes(ref) && (d.status === 'NOT_READY' || d.status === 'UNKNOWN')));
     if (involved && finding.severity !== 'INFO') blockers.push(finding.id);
   }
   const refsAll = Object.values(dimensionDetail).flatMap((d) => d.evidence_refs);

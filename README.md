@@ -83,7 +83,7 @@ COLLECTORS / SPECIALISTS (future adapters — NOT in v0.1)
 | `public/fixtures.js` | 3 synthetic passport fixtures (Atlas, Beacon, Relay) |
 | `public/app-core.js` | App-state transitions: import, stage, review, reset |
 | `public/app.js` | 5 WebMCP tools + single-page human UI (textContent-only rendering) |
-| `tests/run-tests.mjs` | 141 deterministic tests |
+| `tests/run-tests.mjs` | 157 deterministic tests |
 | `scripts/webmcp-check.mjs` | Live Chrome WebMCP verification (CDP) |
 
 **Import trust boundary:** imported JSON is untrusted. Parse → strict schema
@@ -162,7 +162,7 @@ renders, imports JSON, shows readiness, and lets a human review proposals.
 Test everything:
 
 ```bash
-node tests/run-tests.mjs        # 141 deterministic tests
+node tests/run-tests.mjs        # 157 deterministic tests
 node scripts/webmcp-check.mjs   # live WebMCP checks (needs Chrome + flag + server)
 node scripts/g0-test.mjs        # G0 runtime spike (single-tool lifecycle)
 ```

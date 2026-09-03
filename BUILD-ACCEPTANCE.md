@@ -26,7 +26,7 @@ PUBLICATION_GO_REQUESTED=YES
 
 | Check | Result |
 | --- | --- |
-| Deterministic suite (`node tests/run-tests.mjs`) | 141 passed, 0 failed |
+| Deterministic suite (`node tests/run-tests.mjs`) | 157 passed, 0 failed (pre-video repair: 141 + 16) |
 | WebMCP check (`node scripts/webmcp-check.mjs`) | PASS — exactFive, descriptions unique, schemas distinct, annotations correct, direct calls, journey, shared UI state, reset, lifecycle, final demo state |
 | Smoke plain Chrome (no WebMCP) (`node scripts/smoke-plain.mjs`) | PASS |
 | G0 runtime spike (`node scripts/g0-test.mjs`) | PASS (10/10) |
@@ -65,10 +65,47 @@ serialization path confirmed), output lengths unchanged, compact.
 
 | Suite | Result |
 | --- | --- |
-| Deterministic suite | 141 passed, 0 failed |
+| Deterministic suite | 157 passed, 0 failed (after pre-video repair: +16 R1/R2 regressions) |
 | WebMCP G2 check | PASS (incl. readOnlyNoMutate, stageSharedState, sharedUIState, lifecycle) |
 | G0 lifecycle suite | PASS (10/10) |
 | Human smoke suite | PASS (human-only mode) |
+
+## Pre-video bounded repair (R1/R2/R3) — applied 2026-09-03
+
+Controller: PUBLICATION_GO authorized (public repo + deploy live). Real ChatGPT in-app
+judge-path revealed three defects; fixed locally, ONE commit, no push/redeploy.
+
+### R1 — retry-safe stage_change_proposal (at-least-once tolerance)
+Deterministic normalized fingerprint over machine_id, role_id, finding_id, proposal_kind,
+summary, acceptance_criterion, verification, rollback_note (no public schema field added).
+Identical active proposal (execution_state=NOT_EXECUTED, review_state STAGED or
+APPROVED_FOR_REVIEW) → returns the existing proposal: no sequence increment, no state
+mutation, no duplicate. REJECTED allows a later identical request. Tests A/B/C/D + no
+machine mutation (added to suite).
+
+### R2 — blocker semantics (policy 0.1.0 → 0.1.1)
+Findings enter `blockers` only when severity WARNING/BLOCKER AND ≥1 evidence ref
+intersects a dimension whose current status is NOT_READY or UNKNOWN. Limitations on
+READY/READY_WITH_LIMITATIONS dims are not blockers. Public behavior after fix:
+Beacon/UA OVERALL=READY_WITH_LIMITATIONS with blockers=[]; Atlas keeps atl-qual-gap
+(QUALIFICATION NOT_READY) and atl-approval-unknown (SECURITY UNKNOWN); Relay keeps
+rly-no-gpu. Role definitions and OVERALL results unchanged. SCHEMA_VERSION stays 0.1.0.
+Re-frozen as ASSESSMENT_POLICY_VERSION=0.1.1.
+
+### R3 — import status UX microfix
+render() now writes `importStatus` to `#import-status` via textContent (success and
+rejection messages visible; no HTML).
+
+### Re-verification after pre-video repair
+
+| Suite | Result |
+| --- | --- |
+| Deterministic suite | 157 passed, 0 failed |
+| WebMCP G2 check | PASS (incl. readOnlyNoMutate, stageSharedState) |
+| G0 lifecycle suite | PASS (10/10) |
+| Human smoke suite | PASS |
+| R3 UI (localhost, CDP) | success + rejection messages visible, textContent only |
+| Private G3 regression | validation PASS, import PASS, three OVERALLs unchanged, UNKNOWN preserved |
 
 ## Public action gates — NOT YET AUTHORIZED
 

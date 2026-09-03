@@ -5,11 +5,11 @@ STATUS: **SCHEMA_AND_POLICY_V0_1_FROZEN=YES**
 
 | Field | Value |
 | --- | --- |
-| SCHEMA_VERSION | `0.1.0` |
-| ASSESSMENT_POLICY_VERSION | `0.1.0` |
+| SCHEMA_VERSION | `0.1.0` (UNCHANGED by repair) |
+| ASSESSMENT_POLICY_VERSION | `0.1.0` → **`0.1.1`** (2026-09-03 pre-video repair R2: blockers = WARNING/BLOCKER findings with evidence intersecting a NOT_READY/UNKNOWN dimension; limitations on READY/READY_WITH_LIMITATIONS dims are not blockers) |
 | SCHEMA_PATH | `public/domain.js` (validatePassport / normalizePassport) |
 | POLICY_PATH | `public/domain.js` (RULES table + aggregateStatus + assessRole) |
-| FIXTURE_TESTS | `tests/run-tests.mjs` — 141/141 PASS (fixtures, malformed rejection, UNKNOWN, rules, aggregation, evidence refs, compare determinism, proposals, reset, no machine mutation) |
+| FIXTURE_TESTS | `tests/run-tests.mjs` — **157/157 PASS** (fixtures, malformed rejection, UNKNOWN, rules, aggregation, evidence refs, compare determinism, proposals, retry-safe stage R1, blocker semantics R2, reset, no machine mutation) |
 | KNOWN_GAPS | See below |
 
 ## Freeze preconditions (all verified)
@@ -37,6 +37,7 @@ UNATTENDED_AI_WORKLOAD:
 2. `compare_machines` "smallest safe next step" heuristic is deterministic but prioritizes a QUALIFICATION blocker → security-UNKNOWN → deployment order.
 3. Natural-language invocation (eval prompt 3/4) requires a real WebMCP agent/human; API-level preconditions verified, full NL selection remains a manual/human check.
 4. G0 step 6/7 (Chrome Model Context Tool Inspector, NL invocation) are human-in-the-loop; programmatic proxies passed.
+5. Post-challenge v0.2 gap (documented, NOT repaired): findings carry no `role_id`; the blocker semantics repair (policy 0.1.1) stays finding-driven per dimension status. A full generic role-scoped findings redesign is deferred to v0.2.
 
 ## Consumer note (INFRA)
 

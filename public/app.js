@@ -172,6 +172,11 @@ const TOOL_DEFS = [
     execute: async (args) => {
       const res = createProposal(state, { ...args, staged_by: 'AGENT' });
       if (res.error) throw new Error(res.error);
+      if (res.duplicate) {
+        // Retry-safe: identical active proposal already exists — no state mutation,
+        // no telemetry, no sequence increment. Return the existing proposal.
+        return res.proposal;
+      }
       state = res.state;
       // The ONLY WebMCP tool that mutates shared app state. Boundary: APP STATE ONLY,
       // execution_state=NOT_EXECUTED, MACHINE MUTATION=NONE.
@@ -208,6 +213,8 @@ function render() {
   renderReadiness();
   renderCompare();
   renderProposals();
+  const isEl = $('#import-status');
+  if (isEl) isEl.textContent = importStatus;
   renderActivity();
 }
 
