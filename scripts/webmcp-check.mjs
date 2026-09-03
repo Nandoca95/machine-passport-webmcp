@@ -35,7 +35,7 @@ async function main() {
   let target = null;
   for (let i = 0; i < 30; i++) {
     const list = await jsonGet(`http://127.0.0.1:${DEBUG_PORT}/json/list`);
-    target = list.find((t) => t.type === 'page' && t.url.startsWith('http://localhost:8787'));
+    target = list.find((t) => t.type === 'page' && t.url.startsWith('http://localhost:8787') && !t.url.includes('g0.html'));
     if (target) break;
     await sleep(500);
   }
@@ -80,10 +80,10 @@ async function main() {
       if (!t) return { ok: false, error: 'tool not found' };
       try {
         const out = await document.modelContext.executeTool(t, JSON.stringify(args));
-        const s = String(out);
+        const s = typeof out === 'string' ? out : JSON.stringify(out);
         let parsed = null;
         try { parsed = JSON.parse(s); } catch { /* non-json */ }
-        return { ok: out !== null && out !== undefined, len: s.length, parsedType: parsed ? typeof parsed : null };
+        return { ok: out !== null && out !== undefined, len: s.length, parsedType: parsed ? typeof parsed : null, rawType: typeof out };
       } catch (e) { return { ok: false, error: String(e).slice(0, 160) }; }
     };
 
@@ -106,23 +106,29 @@ async function main() {
     __mp.reset();
 
     // ---- primary journey through the SAME tool surface an agent uses ----
+    const jval = (v) => (typeof v === 'string' ? JSON.parse(v) : v);
     const j = {};
-    const jList = JSON.parse(await document.modelContext.executeTool(tools.find((t) => t.name === 'list_machines'), '{}'));
+    const jList = jval(await document.modelContext.executeTool(tools.find((t) => t.name === 'list_machines'), '{}'));
     j.listCount = jList.machines.length;
-    const jPass = JSON.parse(await document.modelContext.executeTool(tools.find((t) => t.name === 'get_machine_passport'), JSON.stringify({ machine_id: 'atlas-001' })));
+    const jPass = jval(await document.modelContext.executeTool(tools.find((t) => t.name === 'get_machine_passport'), JSON.stringify({ machine_id: 'atlas-001' })));
     j.passportOk = jPass.machine.id === 'atlas-001' && Array.isArray(jPass.facts) && Array.isArray(jPass.findings);
-    const jAssess = JSON.parse(await document.modelContext.executeTool(tools.find((t) => t.name === 'assess_role_readiness'), JSON.stringify({ machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD' })));
+    const jAssess = jval(await document.modelContext.executeTool(tools.find((t) => t.name === 'assess_role_readiness'), JSON.stringify({ machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD' })));
     j.assessBlocked = jAssess.OVERALL === 'NOT_READY' && jAssess.blockers.includes('atl-qual-gap');
-    const jCmp = JSON.parse(await document.modelContext.executeTool(tools.find((t) => t.name === 'compare_machines'), JSON.stringify({ machine_ids: ['atlas-001', 'beacon-02', 'relay-04'], role_id: 'UNATTENDED_AI_WORKLOAD' })));
+    const jCmp = jval(await document.modelContext.executeTool(tools.find((t) => t.name === 'compare_machines'), JSON.stringify({ machine_ids: ['atlas-001', 'beacon-02', 'relay-04'], role_id: 'UNATTENDED_AI_WORKLOAD' })));
     j.compareSafest = jCmp.tradeoff.safest && jCmp.tradeoff.safest.machine_id === 'beacon-02';
     j.compareNext = jCmp.tradeoff.smallest_safe_next_step && jCmp.tradeoff.smallest_safe_next_step.proposal_kind === 'PLAN_QUALIFICATION_TEST';
-    const jStage = JSON.parse(await document.modelContext.executeTool(tools.find((t) => t.name === 'stage_change_proposal'), JSON.stringify({
+    const machinesBeforeStage = JSON.stringify(__mp.state().machines);
+    const proposalsBeforeStage = __mp.state().proposals.length;
+    const jStage = jval(await document.modelContext.executeTool(tools.find((t) => t.name === 'stage_change_proposal'), JSON.stringify({
       machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD', finding_id: 'atl-qual-gap',
       proposal_kind: 'PLAN_QUALIFICATION_TEST', summary: 'Run a supervised qualification drill for unattended recovery.',
       acceptance_criterion: 'Recovery drill passes twice in a row.', verification: 'Read the qualification record.',
       rollback_note: 'No machine change; Atlas stays out of unattended duty until PASS.',
     })));
     j.stageNotExecuted = jStage.execution_state === 'NOT_EXECUTED' && jStage.review_state === 'STAGED';
+    j.proposalsDelta = __mp.state().proposals.length - proposalsBeforeStage;
+    j.machinesUnchangedByStage = JSON.stringify(__mp.state().machines) === machinesBeforeStage;
+    j.sharedStateProof = j.proposalsDelta === 1 && j.machinesUnchangedByStage && j.stageNotExecuted;
     j.journeyComplete = j.listCount === 3 && j.passportOk && j.assessBlocked && j.compareSafest && j.compareNext && j.stageNotExecuted;
     R.journey = j;
 
@@ -141,6 +147,25 @@ async function main() {
     R.ui.approvedReviewState = approved.review_state === 'APPROVED_FOR_REVIEW';
     R.ui.approvedKeepsNotExecuted = approved.execution_state === 'NOT_EXECUTED';
     R.ui.machinesUnchangedByReview = JSON.stringify(__mp.state().machines) === machinesBefore;
+
+    // ---- READ-ONLY TOOLS DO NOT MUTATE APP STATE (R1) ----
+    const snapBeforeRO = JSON.stringify(__mp.state());
+    {
+      const cur = await document.modelContext.getTools();
+      const cases = {
+        list_machines: '{}',
+        get_machine_passport: JSON.stringify({ machine_id: 'atlas-001' }),
+        assess_role_readiness: JSON.stringify({ machine_id: 'atlas-001', role_id: 'UNATTENDED_AI_WORKLOAD' }),
+        compare_machines: JSON.stringify({ machine_ids: ['atlas-001', 'beacon-02'], role_id: 'UNATTENDED_AI_WORKLOAD' }),
+      };
+      for (const [name, args] of Object.entries(cases)) {
+        const t = cur.find((x) => x.name === name);
+        await document.modelContext.executeTool(t, args);
+      }
+    }
+    const snapAfterRO = JSON.stringify(__mp.state());
+    R.readOnlyToolsDoNotMutate = snapBeforeRO === snapAfterRO;
+    R.readOnlySnapshot = { beforeChars: snapBeforeRO.length, afterChars: snapAfterRO.length, equal: snapBeforeRO === snapAfterRO };
 
     // ---- reset ----
     __mp.reset();
@@ -179,6 +204,8 @@ async function main() {
       directAllOk: R.directAllOk && R.compactReturns && R.parsedJson,
       journey: R.journey.journeyComplete,
       sharedUIState: Object.values(R.ui).every(Boolean),
+      readOnlyNoMutate: R.readOnlyToolsDoNotMutate,
+      stageSharedState: R.journey.sharedStateProof,
       reset: R.reset && R.uiAfterReset,
       lifecycle: Object.values(R.lifecycle).every(Boolean),
       finalDemoState: R.finalStagedProposalVisible,

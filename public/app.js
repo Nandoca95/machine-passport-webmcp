@@ -79,9 +79,8 @@ const TOOL_DEFS = [
       const role = args && args.role_id ? args.role_id : undefined;
       if (role !== undefined && !ROLES.includes(role)) throw new Error(`role_id must be one of ${ROLES.join(', ')}`);
       const machines = listMachinesSummary(state.machines, role);
-      logActivity('list_machines', `listed ${machines.length} machines${role ? ` for ${role}` : ''}`);
-      render();
-      return JSON.stringify({ count: machines.length, machines, policy: { schema_version: SCHEMA_VERSION, assessment_policy_version: ASSESSMENT_POLICY_VERSION } });
+      // READ-ONLY: no app-state mutation (no telemetry, no render).
+      return { count: machines.length, machines, policy: { schema_version: SCHEMA_VERSION, assessment_policy_version: ASSESSMENT_POLICY_VERSION } };
     },
   },
   {
@@ -100,9 +99,8 @@ const TOOL_DEFS = [
     execute: async (args) => {
       const machine = state.machines.find((m) => m.machine.id === args.machine_id);
       if (!machine) throw new Error(`unknown machine_id "${args.machine_id}"; known: ${state.machines.map((m) => m.machine.id).join(', ')}`);
-      logActivity('get_machine_passport', `read passport for ${machine.machine.id}`);
-      render();
-      return JSON.stringify(compactPassport(machine));
+      // READ-ONLY: no app-state mutation.
+      return compactPassport(machine);
     },
   },
   {
@@ -124,9 +122,8 @@ const TOOL_DEFS = [
       if (!machine) throw new Error(`unknown machine_id "${args.machine_id}"`);
       if (!ROLES.includes(args.role_id)) throw new Error(`role_id must be one of ${ROLES.join(', ')}`);
       const assessment = assessRole(machine, args.role_id);
-      logActivity('assess_role_readiness', `${machine.machine.id} / ${args.role_id} = ${assessment.OVERALL}`);
-      render();
-      return JSON.stringify(assessment);
+      // READ-ONLY: no app-state mutation.
+      return assessment;
     },
   },
   {
@@ -148,9 +145,8 @@ const TOOL_DEFS = [
       if (!ROLES.includes(args.role_id)) throw new Error(`role_id must be one of ${ROLES.join(', ')}`);
       const applied = args.machine_ids.filter((id) => state.machines.some((m) => m.machine.id === id));
       const result = compareMachines(state.machines, applied.length ? applied : args.machine_ids, args.role_id);
-      logActivity('compare_machines', `compared ${args.machine_ids.join(', ')} for ${args.role_id}`);
-      render();
-      return JSON.stringify(result);
+      // READ-ONLY: no app-state mutation.
+      return result;
     },
   },
   {
@@ -177,9 +173,11 @@ const TOOL_DEFS = [
       const res = createProposal(state, { ...args, staged_by: 'AGENT' });
       if (res.error) throw new Error(res.error);
       state = res.state;
+      // The ONLY WebMCP tool that mutates shared app state. Boundary: APP STATE ONLY,
+      // execution_state=NOT_EXECUTED, MACHINE MUTATION=NONE.
       logActivity('stage_change_proposal', `staged ${res.proposal.proposal_id} (${res.proposal.proposal_kind}) for ${res.proposal.machine_id}`);
       render();
-      return JSON.stringify(res.proposal);
+      return res.proposal;
     },
   },
 ];

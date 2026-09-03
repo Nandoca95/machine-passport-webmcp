@@ -35,6 +35,41 @@ PUBLICATION_GO_REQUESTED=YES
 
 Checked source for private identifiers/patterns (Lenovo, Alpha-001, serials, IPs, usernames, paths): none found in repo files. `public/fixtures.js` and all fixtures are SYNTHETIC.
 
+## Pre-publication bounded repair (R1/R2) — applied 2026-09-03
+
+Controller inspection: BUILD_ACCEPTANCE=PASS_WITH_ONE_BOUNDED_REPAIR, PUBLICATION_GO=NOT_YET.
+
+### R1 — read-only tools genuinely read-only
+`list_machines`, `get_machine_passport`, `assess_role_readiness`, `compare_machines`
+no longer call `logActivity()`/`render()`; they do not touch machines, proposals,
+activityLog, lastToolAction, or selected state. `stage_change_proposal` remains the
+ONLY WebMCP tool that mutates shared app state (APP STATE ONLY, execution_state=NOT_EXECUTED).
+README/UI/EVAL corrected. Live assertion added: state snapshot before/after the four
+read-only tools — `equal: true` (READ_ONLY_TOOLS_DO_NOT_MUTATE_APP_STATE=PASS).
+
+### R2 — return serialization probe + contract
+Temporary A/B probe on the WebMCP Chrome profile (removed after adjudication):
+
+| Case | execute returns | executeTool() resolved | typeof | JSON.parse |
+| --- | --- | --- | --- | --- |
+| A | `{ ok:true, value:42, nested:{...} }` (object) | `{"ok":true,"value":42,...}` | string | object (single serialization, parse1) |
+| B | `JSON.stringify({ ok:true, value:42,... })` (pre-stringified) | `{"ok":true,"value":42,...}` | string | object (no double-serialization) |
+
+Adjudication: current Chrome 152 serializes ordinary object returns correctly, exactly once.
+**PRODUCTION_RETURN_CONTRACT = ordinary JSON-serializable objects** returned from all five
+execute() callbacks; the WebMCP runtime serializes them (draft-compliant, no double-serialization
+risk in conforming runtimes). Re-verified: `rawType: "string"` on all direct calls (runtime
+serialization path confirmed), output lengths unchanged, compact.
+
+### Re-verification after repair (all suites)
+
+| Suite | Result |
+| --- | --- |
+| Deterministic suite | 141 passed, 0 failed |
+| WebMCP G2 check | PASS (incl. readOnlyNoMutate, stageSharedState, sharedUIState, lifecycle) |
+| G0 lifecycle suite | PASS (10/10) |
+| Human smoke suite | PASS (human-only mode) |
+
 ## Public action gates — NOT YET AUTHORIZED
 
 Separate HUMAN GO required for each:

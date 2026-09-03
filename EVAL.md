@@ -19,7 +19,8 @@ Relay) with ids/labels/classes/source kinds. Read-only; no state change.
 
 Expected: agent chains `list_machines` → `get_machine_passport` →
 `assess_role_readiness` → `compare_machines` → `stage_change_proposal`
-(>=3 tools). The UI visibly changes: activity log line, proposal card with
+(>=3 tools). Read-only tools leave no telemetry; the UI visibly changes only
+when `stage_change_proposal` runs: proposal card with
 `execution_state=NOT_EXECUTED` and `review_state=STAGED`. A human then
 Approve for Review / Reject changes review_state only.
 

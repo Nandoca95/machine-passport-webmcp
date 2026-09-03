@@ -47,10 +47,15 @@ Machine Passport separates **evidence** from **adjudication**:
 
 The page registers **exactly 5 WebMCP tools** with the browser via
 `document.modelContext.registerTool`. Agents discover them with `getTools()`,
-invoke them with `executeTool(tool, argsJsonString)`, and **every tool call
-mutates the same app state the human page renders** — no backend, no database,
-no hidden state. The agent can list, inspect, assess, compare, and stage; it can
-never execute a machine action.
+invoke them with `executeTool(tool, argsJsonString)`, and **all five tools
+operate over the same machine/passport domain state the human page renders** —
+no backend, no database, no hidden state. The first four tools (`list_machines`,
+`get_machine_passport`, `assess_role_readiness`, `compare_machines`) are
+**genuinely read-only**: they inspect state and never modify it (no telemetry,
+no activity log, no selection). **`stage_change_proposal` is the only WebMCP
+tool that mutates shared app state**, and the human UI immediately renders that
+mutation (the proposal card). The demo's human–agent shared-state proof is the
+staged-proposal flow, not telemetry from read-only tools.
 
 Tool lifecycle uses `AbortController`; registration is removed on `abort()` and
 re-registers cleanly (verified; React StrictMode-safe pattern).
