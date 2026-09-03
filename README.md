@@ -50,8 +50,9 @@ The page registers exactly five WebMCP tools with
 and invoke those tools. The included Chrome verification harness
 (`scripts/webmcp-check.mjs`) uses `getTools()` and `executeTool()` directly for
 deterministic runtime testing, and **all five tools operate over the same
-machine/passport domain state the human page renders** — no backend, no
-database, no hidden state. The first four tools (`list_machines`,
+machine/passport domain state the human page renders**. The submitted demo needs
+no backend or database; its shared working state lives in the page that the
+human and WebMCP tools use together. The first four tools (`list_machines`,
 `get_machine_passport`, `assess_role_readiness`, `compare_machines`) are
 **genuinely read-only**: they inspect state and never modify it (no telemetry,
 no activity log, no selection). **`stage_change_proposal` is the only WebMCP
@@ -60,7 +61,7 @@ mutation (the proposal card). The demo's human–agent shared-state proof is the
 staged-proposal flow, not telemetry from read-only tools.
 
 Tool lifecycle uses `AbortController`; registration is removed on `abort()` and
-re-registers cleanly (verified; React StrictMode-safe pattern).
+re-registers cleanly (verified).
 
 ## Architecture
 
@@ -88,7 +89,8 @@ COLLECTORS / SPECIALISTS (future adapters — NOT in v0.1)
 
 **Import trust boundary:** imported JSON is untrusted. Parse → strict schema
 validation → bounded sizes → normalized object → app state. Imported values are
-rendered as plain text only (no HTML injection), never executed, never fetched.
+rendered as plain text, are never executed as HTML, and do not trigger network
+actions.
 
 ## The five WebMCP tools
 
@@ -190,10 +192,9 @@ discovery and invocation.
 
 ## The boundary
 
-**MACHINE MUTATION = NONE.** This project contains no collector, no SSH, no
-PowerShell, no device access, no remediation, and no tool or button that
-executes a machine action. `stage_change_proposal` cannot do more than create a
-proposal record a human reviews.
+**MACHINE MUTATION = NONE.** The submitted v0.1 demo path performs no SSH,
+PowerShell, device access or machine mutation. `stage_change_proposal` cannot do
+more than create a proposal record a human reviews.
 
 ## License
 

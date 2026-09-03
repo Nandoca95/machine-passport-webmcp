@@ -3,14 +3,12 @@
 No eval platform is built. These four prompts cover the required behaviors; each
 can be verified by a human with the Model Context Tool Inspector or a
 WebMCP-capable assistant (ChatGPT in-app browser recommended for the live URL).
-
-> Live-site testing: the live HTTPS deployment has been verified with both
-> ChatGPT's in-app browser (recommended judge path) and Chrome with WebMCP
-> testing enabled. The deterministic harness waits for tool registration
-> readiness before discovery/invocation checks.
-against the live app, or by driving the five tools directly from the included
-harness (`executeTool(tool, '<args-as-json-string>')` is harness/runtime
-testing detail, not a normative WebMCP API claim).
+The live HTTPS deployment has been verified with both ChatGPT's in-app browser
+and Chrome with WebMCP testing enabled; the deterministic harness waits for tool
+registration readiness before discovery and invocation checks. Automated checks
+can also drive the five tools through the included harness (`executeTool(tool,
+'<args-as-json-string>')` is harness/runtime testing detail, not a normative
+WebMCP API claim).
 
 ## 1. Direct single-tool request
 
