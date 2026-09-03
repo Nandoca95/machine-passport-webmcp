@@ -4,12 +4,13 @@ No eval platform is built. These four prompts cover the required behaviors; each
 can be verified by a human with the Model Context Tool Inspector or a
 WebMCP-capable assistant (ChatGPT in-app browser recommended for the live URL).
 
-> Live-site note: deterministic WebMCP verification runs on localhost
-> (`npm run check`). On remote https origins, current Chrome's testing flag can
-> fail to expose page-registered tools via `getTools()` (documented in README);
-> use the ChatGPT in-app browser for live judge-path testing.
-against the live app, or by driving the five tools directly
-(`document.modelContext.executeTool(tool, '{"...":"..."}')`).
+> Live-site testing: the live HTTPS deployment has been verified with both
+> ChatGPT's in-app browser (recommended judge path) and Chrome with WebMCP
+> testing enabled. The deterministic harness waits for tool registration
+> readiness before discovery/invocation checks.
+against the live app, or by driving the five tools directly from the included
+harness (`executeTool(tool, '<args-as-json-string>')` is harness/runtime
+testing detail, not a normative WebMCP API claim).
 
 ## 1. Direct single-tool request
 
@@ -30,9 +31,10 @@ when `stage_change_proposal` runs: proposal card with
 `execution_state=NOT_EXECUTED` and `review_state=STAGED`. A human then
 Approve for Review / Reject changes review_state only.
 
-Ground truth: Beacon = READY_WITH_LIMITATIONS (safest); Atlas = NOT_READY,
-blocker `atl-qual-gap`; next step = PLAN_QUALIFICATION_TEST on Atlas
-`atl-qual-gap`.
+Ground truth (UNATTENDED_AI_WORKLOAD): Beacon = READY_WITH_LIMITATIONS,
+blockers=[] (safest, no hard blockers); Atlas = NOT_READY,
+blockers=[atl-qual-gap, atl-approval-unknown]; next step =
+PLAN_QUALIFICATION_TEST on Atlas `atl-qual-gap`.
 
 ## 3. Ambiguous request
 
@@ -56,7 +58,11 @@ UNKNOWN (not FAIL, not PASS).
 ## Verification notes
 
 - Error outputs are JSON strings with an `error` field; agents should read them.
-- All read tools are deterministic; `stage_change_proposal` increments a
-  proposal sequence (app state only).
+- All read tools are deterministic; `stage_change_proposal` mutates app state
+  only (proposal records).
+- Proposal staging is retry-safe: the first unique stage creates a proposal; an
+  identical active retry returns the existing proposal and does NOT increment
+  the proposal count; a REJECTED proposal allows a later identical request to
+  create a new one. App state only. **MACHINE MUTATION = NONE.**
 - After the deadline the demo may be reset with the Reset demo button; the
   three synthetic fixtures always come back.

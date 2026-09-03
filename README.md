@@ -176,20 +176,17 @@ The deterministic WebMCP harness (`scripts/webmcp-check.mjs`) runs against
 **localhost**, where the Chrome testing flag exposes the five tools reliably
 (verified: discovery → invocation → deterministic output → shared UI state).
 
-Observed Chrome 152 divergence on **remote (https) origins**: registering via
-`document.modelContext.registerTool` from page scripts can resolve without the
-tool appearing in `getTools()`, and `executeTool` brand checks are flaky for
-entries read from `getTools()` — even though the identical build passes 100% on
-localhost. The flag is named "WebMCP **for testing**" and this behavior is a
-runtime limitation, not an app defect.
+The live HTTPS deployment has been verified with both:
 
-**Judge path on the live URL:** use the ChatGPT in-app browser (the intended
-WebMCP runtime) or another WebMCP-capable assistant against
-https://nandoca95.github.io/machine-passport-webmcp/ and the three copy/paste
-prompts in the next section. For deterministic verification of the same build,
-use the localhost harness above. `scripts/live-smoke.mjs` verifies the live URL
-works in a clean browser (human-only mode) and that every referenced asset
-resolves; `scripts/live-webmcp.mjs` runs the judge-path probe on the live URL.
+- ChatGPT's in-app browser Site Tools path; and
+- Chrome with WebMCP testing enabled.
+
+The included harness waits for tool registration readiness before testing
+discovery and invocation.
+
+`scripts/live-smoke.mjs` verifies the live URL works in a clean browser
+(human-only mode) and that every referenced asset resolves;
+`scripts/live-webmcp.mjs` runs the judge-path probe on the live URL.
 
 ## The boundary
 
