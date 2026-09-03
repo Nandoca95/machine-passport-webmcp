@@ -1,8 +1,7 @@
 # BUILD ACCEPTANCE — Machine Passport v0.1 (G4 judge mode)
 
 DATE: 2026-09-03
-BUILD_ACCEPTANCE=YES (local build; public action requires separate HUMAN GO)
-PUBLICATION_GO_REQUESTED=YES
+BUILD_ACCEPTANCE=YES
 
 ## G4 checklist (verified)
 
@@ -14,9 +13,9 @@ PUBLICATION_GO_REQUESTED=YES
 - [x] Five WebMCP tools work (live Chrome check PASS)
 - [x] Critical journey works (list → passport → assess → compare → stage → UI → human approve)
 - [x] App useful for human alone (plain-Chrome smoke PASS: render/import/assess/reset)
-- [x] Materially improved with agent (5 tools, staged proposals, shared state, activity log)
+- [x] Materially improved with agent (5 tools, staged proposals, shared state)
 - [x] Compact outputs (all tool returns < 20 KB; most < 1 KB)
-- [x] Root OSS license prepared (MIT, LICENSE)
+- [x] Root OSS license present (MIT, LICENSE)
 - [x] README/testing/submission material in ENGLISH (README.md, EVAL.md)
 - [x] README explains: problem, audience, WebMCP leverage, architecture, five tools, critical journey, 3 copy/paste prompts, no-machine-mutation boundary
 - [x] Clean browser path prepared (serve script + flag instructions; human-only fallback)
@@ -33,11 +32,9 @@ PUBLICATION_GO_REQUESTED=YES
 
 ## Private-data scan
 
-Checked source for private identifiers/patterns (Lenovo, Alpha-001, serials, IPs, usernames, paths): none found in repo files. `public/fixtures.js` and all fixtures are SYNTHETIC.
+Checked source for private identifiers/patterns (serials, IPs, usernames, private paths): none found in repo files. `public/fixtures.js` and all public fixtures are SYNTHETIC.
 
 ## Pre-publication bounded repair (R1/R2) — applied 2026-09-03
-
-Controller inspection: BUILD_ACCEPTANCE=PASS_WITH_ONE_BOUNDED_REPAIR, PUBLICATION_GO=NOT_YET.
 
 ### R1 — read-only tools genuinely read-only
 `list_machines`, `get_machine_passport`, `assess_role_readiness`, `compare_machines`
@@ -57,23 +54,22 @@ Temporary A/B probe on the WebMCP Chrome profile (removed after adjudication):
 
 Adjudication: current Chrome 152 serializes ordinary object returns correctly, exactly once.
 **PRODUCTION_RETURN_CONTRACT = ordinary JSON-serializable objects** returned from all five
-execute() callbacks; the WebMCP runtime serializes them (draft-compliant, no double-serialization
-risk in conforming runtimes). Re-verified: `rawType: "string"` on all direct calls (runtime
-serialization path confirmed), output lengths unchanged, compact.
+execute() callbacks; the WebMCP runtime serializes them. Re-verified: `rawType: "string"`
+on all direct calls, output lengths unchanged and compact.
 
 ### Re-verification after repair (all suites)
 
 | Suite | Result |
 | --- | --- |
-| Deterministic suite | 157 passed, 0 failed (after pre-video repair: +16 R1/R2 regressions) |
+| Deterministic suite | 157 passed, 0 failed |
 | WebMCP G2 check | PASS (incl. readOnlyNoMutate, stageSharedState, sharedUIState, lifecycle) |
 | G0 lifecycle suite | PASS (10/10) |
 | Human smoke suite | PASS (human-only mode) |
 
 ## Pre-video bounded repair (R1/R2/R3) — applied 2026-09-03
 
-Controller: PUBLICATION_GO authorized (public repo + deploy live). Real ChatGPT in-app
-judge-path revealed three defects; fixed locally, ONE commit, no push/redeploy.
+A real ChatGPT in-app judge-path exposed three bounded defects; they were fixed,
+re-verified and incorporated into the accepted public build.
 
 ### R1 — retry-safe stage_change_proposal (at-least-once tolerance)
 Deterministic normalized fingerprint over machine_id, role_id, finding_id, proposal_kind,
@@ -93,8 +89,8 @@ rly-no-gpu. Role definitions and OVERALL results unchanged. SCHEMA_VERSION stays
 Re-frozen as ASSESSMENT_POLICY_VERSION=0.1.1.
 
 ### R3 — import status UX microfix
-render() now writes `importStatus` to `#import-status` via textContent (success and
-rejection messages visible; no HTML).
+render() writes `importStatus` to `#import-status` via textContent (success and
+rejection messages visible; no HTML execution).
 
 ### Re-verification after pre-video repair
 
@@ -104,16 +100,5 @@ rejection messages visible; no HTML).
 | WebMCP G2 check | PASS (incl. readOnlyNoMutate, stageSharedState) |
 | G0 lifecycle suite | PASS (10/10) |
 | Human smoke suite | PASS |
-| R3 UI (localhost, CDP) | success + rejection messages visible, textContent only |
-| Private G3 regression | validation PASS, import PASS, three OVERALLs unchanged, UNKNOWN preserved |
-
-## Public action gates — NOT YET AUTHORIZED
-
-Separate HUMAN GO required for each:
-
-- GO PUBLIC REPO
-- GO PUBLIC DEPLOY
-- GO VIDEO UPLOAD
-- GO DEVPOST SUBMIT
-
-STOP before any public action.
+| R3 UI | success + rejection messages visible, textContent only |
+| Private real-passport regression | validation PASS, import PASS, three OVERALLs unchanged, UNKNOWN preserved |

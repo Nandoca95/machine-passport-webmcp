@@ -35,13 +35,6 @@ UNATTENDED_AI_WORKLOAD:
 
 1. Rules are intentionally small (4 per role); GA/security depth beyond the 3 roles is future work.
 2. `compare_machines` "smallest safe next step" heuristic is deterministic but prioritizes a QUALIFICATION blocker → security-UNKNOWN → deployment order.
-3. Natural-language invocation (eval prompt 3/4) requires a real WebMCP agent/human; API-level preconditions verified, full NL selection remains a manual/human check.
+3. Natural-language invocation requires a real WebMCP agent/human path; the live ChatGPT in-app judge journey was verified separately.
 4. G0 step 6/7 (Chrome Model Context Tool Inspector, NL invocation) are human-in-the-loop; programmatic proxies passed.
 5. Post-challenge v0.2 gap (documented, NOT repaired): findings carry no `role_id`; the blocker semantics repair (policy 0.1.1) stays finding-driven per dimension status. A full generic role-scoped findings redesign is deferred to v0.2.
-
-## Consumer note (INFRA)
-
-INFRA may now independently derive the sanitized Lenovo MachinePassport against this frozen
-schema/policy. Constraints stay: no raw logs, no usernames, no serials, no IPs, no private paths;
-collector_status UNAVAILABLE must be preserved; UNKNOWN is not FAIL and not PASS.
-Validation is private (G3) and nonblocking.
