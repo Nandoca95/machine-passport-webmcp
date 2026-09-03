@@ -45,11 +45,13 @@ Machine Passport separates **evidence** from **adjudication**:
 
 ## WebMCP leverage
 
-The page registers **exactly 5 WebMCP tools** with the browser via
-`document.modelContext.registerTool`. Agents discover them with `getTools()`,
-invoke them with `executeTool(tool, argsJsonString)`, and **all five tools
-operate over the same machine/passport domain state the human page renders** —
-no backend, no database, no hidden state. The first four tools (`list_machines`,
+The page registers exactly five WebMCP tools with
+`document.modelContext.registerTool`. WebMCP-capable browser agents can discover
+and invoke those tools. The included Chrome verification harness
+(`scripts/webmcp-check.mjs`) uses `getTools()` and `executeTool()` directly for
+deterministic runtime testing, and **all five tools operate over the same
+machine/passport domain state the human page renders** — no backend, no
+database, no hidden state. The first four tools (`list_machines`,
 `get_machine_passport`, `assess_role_readiness`, `compare_machines`) are
 **genuinely read-only**: they inspect state and never modify it (no telemetry,
 no activity log, no selection). **`stage_change_proposal` is the only WebMCP
