@@ -1,0 +1,61 @@
+{
+  "example_kind": "machine_passport_recovery_teaching_case_v1",
+  "synthetic": true,
+  "not_machine_passport_import": true,
+  "case_id": "synthetic-aio-01",
+  "intended_use": "supervised_general_workstation",
+  "facts": [
+    {
+      "id": "symptom_internal_display",
+      "provenance": "OBSERVED",
+      "value": "intermittent_visual_fault"
+    },
+    {
+      "id": "pre_os_reproduction",
+      "provenance": "OBSERVED",
+      "value": true
+    },
+    {
+      "id": "external_display_control",
+      "provenance": "OBSERVED",
+      "value": "clean"
+    },
+    {
+      "id": "quick_board_check",
+      "provenance": "OBSERVED",
+      "value": "PASS",
+      "coverage": "quick_diagnostic_only"
+    },
+    {
+      "id": "prior_service",
+      "provenance": "HUMAN_REPORTED",
+      "value": "machine_was_opened_previously"
+    }
+  ],
+  "derived_interpretation": {
+    "software_primary_cause": "STRONGLY_DEPRIORITIZED",
+    "failure_family": "INTERNAL_DISPLAY_PATH",
+    "exact_failed_component": "UNKNOWN",
+    "whole_board_health": "NOT_CERTIFIED"
+  },
+  "next_discriminating_action": {
+    "kind": "HUMAN_AUTHORIZED_INSPECTION",
+    "scope": "internal_display_connections_before_parts",
+    "execution_state": "NOT_EXECUTED"
+  },
+  "workaround": {
+    "available": true,
+    "kind": "external_display",
+    "physical_repair": false,
+    "fitness_for_use_verified": false
+  },
+  "economics": {
+    "market_prices_are_reference_only": true,
+    "repair_vs_part_out_decision": "PENDING_REAL_QUOTE_AND_USE_VALIDATION"
+  },
+  "privacy": {
+    "contains_real_owner_data": false,
+    "contains_real_serials_or_paths": false,
+    "contains_real_photos": false
+  }
+}

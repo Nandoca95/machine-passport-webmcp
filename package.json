@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "serve": "node scripts/serve.mjs",
-    "test": "node tests/run-tests.mjs",
+    "test": "node tests/run-tests.mjs && node tests/recovery-methodology-test.mjs",
     "check": "node scripts/webmcp-check.mjs",
     "g0-test": "node scripts/g0-test.mjs",
     "smoke-plain": "node scripts/smoke-plain.mjs",

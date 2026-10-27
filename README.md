@@ -199,3 +199,51 @@ more than create a proposal record a human reviews.
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+---
+
+## Post-challenge recovery methodology
+
+The original OpenAI WebMCP Challenge submission remains identifiable at commit
+`f74cb0b5d2deffd058f6cecee643409c324b366d`. The browser demo, schema
+(`0.1.0`) and assessment policy (`0.1.1`) remain unchanged by this
+post-challenge documentation extension.
+
+Later field work added reusable lessons about computer diagnosis, recovery and
+reuse. Those lessons are published here only as sanitized methodology, a fully
+synthetic teaching case and deterministic documentation tests.
+
+The added material focuses on evidence boundaries:
+
+```text
+observability_problem != hardware_failure
+quick_test_pass != whole_machine_certified
+recovered_access != physical_repair
+workaround_available != fault_repaired
+data_recovered != media_reliable
+compatible_part != verified_healthy_donor
+owner_reported != observed != derived
+current_health != durable_recovery
+```
+
+Start with:
+
+- `docs/RECOVERY-METHODOLOGY.md` — the open diagnostic/recovery/reuse loop.
+- `docs/SYNTHETIC-RECOVERY-CASE.md` — a fictional worked example.
+- `examples/synthetic-recovery-case.json` — machine-readable teaching data,
+  explicitly **not** a Machine Passport import.
+- `PROVENANCE.md` — how the post-challenge learning was sanitized and separated
+  from private field evidence.
+
+No real owner case, machine identity, private path, account data, photo, private
+agreement or raw field log is included in this extension. The public app still
+performs **no machine mutation**.
+
+Run the original deterministic suite plus the recovery-methodology checks with:
+
+```bash
+npm test
+```
+
+The recovery methodology is a decision-support layer. It does not turn Machine
+Passport into a remote-control or repair execution system.
